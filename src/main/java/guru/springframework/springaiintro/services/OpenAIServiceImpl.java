@@ -17,12 +17,15 @@ import java.util.Map;
 public class OpenAIServiceImpl implements OpenAIService {
     private final ChatModel chatModel;
 
+    @Value("classpath:templates/get-capital-prompt.st")
+    private Resource getCapitalPrompt;
+
+    @Value("classpath:templates/get-capital-with-info.st")
+    private Resource getCapitalPromptWithInfo;
+
     public OpenAIServiceImpl(ChatModel chatModel) {
         this.chatModel = chatModel;
     }
-
-    @Value("classpath:templates/get-capital-prompt.st")
-    private Resource getCapitalPrompt;
 
     @Override
     public String getAnswer(String question) {
@@ -47,6 +50,15 @@ public class OpenAIServiceImpl implements OpenAIService {
     @Override
     public Answer getCapital(GetCapitalRequest getCapitalRequest) {
         PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
+        ChatResponse response = chatModel.call(prompt);
+
+        return new Answer(response.getResult().getOutput().getContent());
+    }
+
+    @Override
+    public Answer getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
+        PromptTemplate promptTemplate = new PromptTemplate(getCapitalPromptWithInfo);
         Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
         ChatResponse response = chatModel.call(prompt);
 
