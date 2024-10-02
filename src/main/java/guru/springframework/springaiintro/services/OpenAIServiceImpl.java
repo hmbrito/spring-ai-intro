@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import guru.springframework.springaiintro.model.Answer;
 import guru.springframework.springaiintro.model.GetCapitalRequest;
+import guru.springframework.springaiintro.model.GetCapitalResponse;
 import guru.springframework.springaiintro.model.Question;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.converter.BeanOutputConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -26,9 +28,6 @@ public class OpenAIServiceImpl implements OpenAIService {
 
     @Value("classpath:templates/get-capital-with-info.st")
     private Resource getCapitalPromptWithInfo;
-
-    @Autowired
-    ObjectMapper objectMapper;
 
     public OpenAIServiceImpl(ChatModel chatModel) {
         this.chatModel = chatModel;
@@ -53,30 +52,18 @@ public class OpenAIServiceImpl implements OpenAIService {
         return new Answer(response.getResult().getOutput().getContent());
     }
 
-    //getCapitalPrompt: What is the capital of {stateOrCountry}?
+    //getCapitalPrompt: What is the capital of {stateOrCountry}? {format}
     @Override
-    public Answer getCapital(GetCapitalRequest getCapitalRequest) {
+    public GetCapitalResponse getCapital(GetCapitalRequest getCapitalRequest) {
+        BeanOutputConverter<GetCapitalResponse> converter = new BeanOutputConverter<>(GetCapitalResponse.class);
+        String format = converter.getFormat();
+
         PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);
-        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
+        Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry(), "format", format));
+
         ChatResponse response = chatModel.call(prompt);
 
-        final String bizarreChar = "`";
-        final String emptyChar = "";
-        final String bizarreString = "json";
-
-        System.out.println(response.getResult().getOutput().getContent().replace(bizarreChar, emptyChar).replace(bizarreString, emptyChar));
-
-        String responseString;
-
-        try {
-            JsonNode jsonNode = objectMapper.readTree(response.getResult().getOutput().getContent().replace(bizarreChar, emptyChar).replace(bizarreString, emptyChar));
-            responseString = jsonNode.get("answer").asText();
-
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-
-        return new Answer(responseString);
+        return converter.convert(response.getResult().getOutput().getContent());
     }
 
     @Override
