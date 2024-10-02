@@ -60,12 +60,16 @@ public class OpenAIServiceImpl implements OpenAIService {
         Prompt prompt = promptTemplate.create(Map.of("stateOrCountry", getCapitalRequest.stateOrCountry()));
         ChatResponse response = chatModel.call(prompt);
 
-        System.out.println(response.getResult().getOutput().getContent().replace("`", "").replace("json", ""));
+        final String bizarreChar = "`";
+        final String emptyChar = "";
+        final String bizarreString = "json";
+
+        System.out.println(response.getResult().getOutput().getContent().replace(bizarreChar, emptyChar).replace(bizarreString, emptyChar));
 
         String responseString;
 
         try {
-            JsonNode jsonNode = objectMapper.readTree(response.getResult().getOutput().getContent().replace("`", "").replace("json", ""));
+            JsonNode jsonNode = objectMapper.readTree(response.getResult().getOutput().getContent().replace(bizarreChar, emptyChar).replace(bizarreString, emptyChar));
             responseString = jsonNode.get("answer").asText();
 
         } catch (JsonProcessingException e) {
