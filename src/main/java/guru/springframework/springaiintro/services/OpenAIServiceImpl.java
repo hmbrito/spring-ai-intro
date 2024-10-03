@@ -7,6 +7,7 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.ai.parser.BeanOutputParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -61,8 +62,8 @@ public class OpenAIServiceImpl implements OpenAIService {
     }
 
     @Override
-    public GetCapitalWithInfo getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
-        BeanOutputConverter<GetCapitalWithInfo> converter = new BeanOutputConverter<>(GetCapitalWithInfo.class);
+    public GetCapitalWithInfoResponse getCapitalWithInfo(GetCapitalRequest getCapitalRequest) {
+        BeanOutputConverter<GetCapitalWithInfoResponse> converter = new BeanOutputConverter<>(GetCapitalWithInfoResponse.class);
         String format = converter.getFormat();
 
         PromptTemplate promptTemplate = new PromptTemplate(getCapitalPrompt);

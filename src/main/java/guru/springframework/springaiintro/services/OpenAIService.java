@@ -9,5 +9,5 @@ public interface OpenAIService {
 
     GetCapitalResponse getCapital(GetCapitalRequest getCapitalRequest);
 
-    GetCapitalWithInfo getCapitalWithInfo(GetCapitalRequest getCapitalRequest);
+    GetCapitalWithInfoResponse getCapitalWithInfo(GetCapitalRequest getCapitalRequest);
 }
